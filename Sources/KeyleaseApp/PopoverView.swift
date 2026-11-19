@@ -13,7 +13,7 @@ struct PopoverView: View {
             }
         }
         .padding(14)
-        .frame(width: 340, height: 220)
+        .frame(width: 340, height: 170)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -38,22 +38,11 @@ struct PopoverView: View {
             Button {
                 pasteAndActivate()
             } label: {
-                Label("Open from clipboard", systemImage: "doc.on.clipboard")
+                Label("Open from clipboard (⌘V)", systemImage: "doc.on.clipboard")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-
-            Text("Copy the secret, then press ⌘V or click above.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-
-            Divider()
-
-            Text("Agent: keylease run --env NAME -- <command>")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -67,10 +56,6 @@ struct PopoverView: View {
                 Spacer()
             }
 
-            Text("Agent chooses the variable name")
-                .font(.system(.body, design: .monospaced))
-                .textSelection(.enabled)
-
             TimelineView(.periodic(from: .now, by: 1)) { context in
                 Text("Single use · \(format(remainingSeconds(at: context.date)))")
                     .font(.system(.body, design: .monospaced))
@@ -79,22 +64,14 @@ struct PopoverView: View {
             Divider()
 
             HStack {
-                Button("Replace from clipboard") {
+                Button("Replace (⌘V)") {
                     pasteAndActivate()
                 }
                 Spacer()
-                Button("Close channel", role: .destructive) {
+                Button("Close", role: .destructive) {
                     store.revoke()
                 }
             }
-
-            Text("keylease run --env NAME -- <command>")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-
-            Text("Closes on use, expiry, or app exit.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
         }
     }
 

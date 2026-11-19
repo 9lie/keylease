@@ -44,8 +44,10 @@ The installer builds and installs `/Applications/Keylease.app`, puts `keylease` 
 ## Usage
 
 1. Copy the secret to the clipboard.
-2. Press `⇧⌘K`, or click the key icon and choose **Open from clipboard**. You can also press `⌘V` while the panel is open.
+2. Press `⇧⌘K`, or click the key icon and choose **Open from clipboard (⌘V)**.
 3. Let the agent run its command.
+
+Press `Esc` to close the panel without opening a channel.
 
 ```bash
 keylease run --env OPENAI_API_KEY -- python app.py

@@ -67,7 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func setupPanel() {
         panel = KeyleasePanel(
-            contentRect: NSRect(x: 0, y: 0, width: 340, height: 220),
+            contentRect: NSRect(x: 0, y: 0, width: 340, height: 170),
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -100,7 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             NSApp.terminate(nil)
         } catch {
             let alert = NSAlert()
-            alert.messageText = "Keylease 无法启动"
+            alert.messageText = "Keylease couldn't start"
             alert.informativeText = error.localizedDescription
             alert.runModal()
             NSApp.terminate(nil)
@@ -147,6 +147,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private func setupKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return event }
+
+            if self.panel.isVisible, event.keyCode == 53 {
+                self.lastHide = Date()
+                self.panel.orderOut(nil)
+                return nil
+            }
+
             let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
             let isCommandV = flags.contains(.command)
                 && event.charactersIgnoringModifiers?.lowercased() == "v"
@@ -172,7 +179,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func showPanel(atMouse: Bool) {
-        let size = NSSize(width: 340, height: 220)
+        let size = NSSize(width: 340, height: 170)
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first(where: { NSPointInRect(mouse, $0.frame) })
             ?? NSScreen.main
