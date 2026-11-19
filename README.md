@@ -2,7 +2,7 @@
 
 A one-time secret channel for AI agents on macOS.
 
-The secret stays in app memory, expires after 10 minutes, and can be used once.
+Agents shouldn’t be handed secrets in chat: they end up in conversation context, logs, and shell history, and agents often ask you to delete them. Injecting an environment variable into an already-running agent is also awkward. Keylease gives you a menu bar action that opens a 10-minute, single-use channel. The agent uses the secret through a child process environment and never reads the value itself.
 
 ## For humans
 
