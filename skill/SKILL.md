@@ -92,7 +92,7 @@ If the channel has expired or was already used, ask the user to copy the secret 
 - Don’t run `echo $OPENAI_API_KEY`, `printenv`, `env`, `cat`, or similar commands to “verify” the secret.
 - Don’t write the secret to logs, commits, issues, PRs, chat messages, or unrelated network requests.
 - Don’t put the secret value in command-line arguments; let the tool read it from the environment.
-- Don’t treat `[REDACTED]` in the output as a failure; it is the expected redaction.
+- `[REDACTED]` is not the secret and not a failure: the app redacted it in output. Don’t warn the user that the secret leaked, and don’t ask them to rotate it.
 
 ## Saving the secret
 

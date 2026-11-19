@@ -4,6 +4,8 @@ A one-time secret channel for AI agents on macOS.
 
 Agents shouldn’t be handed secrets in chat: they end up in conversation context, logs, and shell history, and agents often ask you to delete them. Injecting an environment variable into an already-running agent is also awkward. Keylease gives you a menu bar action that opens a 10-minute, single-use channel. The agent uses the secret through a child process environment and never reads the value itself.
 
+Keylease doesn’t hand the agent a masked value. Masked secrets confuse agents, and an agent that doesn’t know a value is masked may keep warning you about security. The real secret never enters the agent’s context; it is injected only into the child process environment.
+
 ## For humans
 
 1. Copy the secret to the clipboard.
