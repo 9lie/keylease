@@ -33,7 +33,7 @@ It blocks in the background for up to 10 minutes by default. As soon as the user
 
 2. The first time the user needs to open a channel, use this reminder. Do not ask for the secret itself:
 
-> Copy the secret to your clipboard, then click the key icon in the menu bar (or press `⇧⌘K`) and choose “Open channel from clipboard”. You don’t need to send it to me.
+> Copy the secret to your clipboard, then click the key icon in the menu bar (or press `⇧⌘K`). With the panel open, `⌘V` also activates it. You don’t need to send it to me.
 
 If the user cannot find the icon:
 

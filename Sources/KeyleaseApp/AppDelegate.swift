@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private var hotKeyRef: EventHotKeyRef?
     private var eventHandlerRef: EventHandlerRef?
+    private var keyMonitor: Any?
     private var lastHide = Date.distantPast
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -24,6 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupPanel()
         setupServer()
         setupHotKey()
+        setupKeyMonitor()
 
         store.onChange = { [weak self] in
             self?.refreshStatusItem()
@@ -33,6 +35,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         server?.stop()
+
+        if let keyMonitor {
+            NSEvent.removeMonitor(keyMonitor)
+        }
 
         if let hotKeyRef {
             UnregisterEventHotKey(hotKeyRef)
@@ -61,7 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func setupPanel() {
         panel = KeyleasePanel(
-            contentRect: NSRect(x: 0, y: 0, width: 340, height: 240),
+            contentRect: NSRect(x: 0, y: 0, width: 340, height: 220),
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -138,6 +144,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         )
     }
 
+    private func setupKeyMonitor() {
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self else { return event }
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            let isCommandV = flags.contains(.command)
+                && event.charactersIgnoringModifiers?.lowercased() == "v"
+
+            guard self.panel.isVisible, isCommandV else { return event }
+            self.activateFromClipboard()
+            return nil
+        }
+    }
+
     @objc private func togglePanel(_ sender: Any?) {
         if panel.isVisible {
             lastHide = Date()
@@ -153,7 +172,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func showPanel(atMouse: Bool) {
-        let size = NSSize(width: 340, height: 240)
+        let size = NSSize(width: 340, height: 220)
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first(where: { NSPointInRect(mouse, $0.frame) })
             ?? NSScreen.main
@@ -193,7 +212,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
 
         store.activate(secret: secret)
-        showPanel(atMouse: false)
+        if !panel.isVisible {
+            showPanel(atMouse: false)
+        }
     }
 
     private func refreshStatusItem() {

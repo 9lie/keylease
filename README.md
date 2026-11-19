@@ -6,7 +6,7 @@ Copy a secret, press `⇧⌘K` or click the menu bar key, and let an agent use i
 
 ## Features
 
-- Clipboard → menu bar channel. No input field, no naming.
+- Clipboard → menu bar channel. No input field, no naming. Press `⌘V` while the panel is open to activate immediately.
 - The agent chooses the environment variable name, e.g. `OPENAI_API_KEY`.
 - One use, 10-minute TTL by default.
 - `keylease run --wait` blocks until you open the channel, then runs automatically.
@@ -44,7 +44,7 @@ The installer builds and installs `/Applications/Keylease.app`, puts `keylease` 
 ## Usage
 
 1. Copy the secret to the clipboard.
-2. Press `⇧⌘K`, or click the key icon and choose **Open channel from clipboard**.
+2. Press `⇧⌘K`, or click the key icon and choose **Open from clipboard**. You can also press `⌘V` while the panel is open.
 3. Let the agent run its command.
 
 ```bash

@@ -13,7 +13,7 @@ struct PopoverView: View {
             }
         }
         .padding(14)
-        .frame(width: 340, height: 240)
+        .frame(width: 340, height: 220)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -26,31 +26,31 @@ struct PopoverView: View {
             HStack(spacing: 8) {
                 Image(systemName: "key.fill")
                     .foregroundStyle(.blue)
-                Text("临时通道")
+                Text("Temporary channel")
                     .font(.system(size: 15, weight: .semibold))
                 Spacer()
             }
 
-            Text("默认 10 分钟 · 一次使用")
+            Text("10 min · single use")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             Button {
                 pasteAndActivate()
             } label: {
-                Label("从剪贴板开启通道", systemImage: "doc.on.clipboard")
+                Label("Open from clipboard", systemImage: "doc.on.clipboard")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
 
-            Text("先把密钥复制到剪贴板，再点这个按钮。通道到期自动关闭。")
+            Text("Copy the secret, then press ⌘V or click above.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
 
             Divider()
 
-            Text("Agent 用 keylease run --env <变量名> -- <命令> 调用；密钥只进子进程环境，不落盘。")
+            Text("Agent: keylease run --env NAME -- <command>")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -62,37 +62,37 @@ struct PopoverView: View {
             HStack(spacing: 8) {
                 Image(systemName: "key.fill")
                     .foregroundStyle(.green)
-                Text("通道已开启")
+                Text("Channel open")
                     .font(.system(size: 15, weight: .semibold))
                 Spacer()
             }
 
-            Text("变量名由 Agent 指定")
+            Text("Agent chooses the variable name")
                 .font(.system(.body, design: .monospaced))
                 .textSelection(.enabled)
 
             TimelineView(.periodic(from: .now, by: 1)) { context in
-                Text("一次性 · \(format(remainingSeconds(at: context.date)))")
+                Text("Single use · \(format(remainingSeconds(at: context.date)))")
                     .font(.system(.body, design: .monospaced))
             }
 
             Divider()
 
             HStack {
-                Button("从剪贴板替换") {
+                Button("Replace from clipboard") {
                     pasteAndActivate()
                 }
                 Spacer()
-                Button("关闭通道", role: .destructive) {
+                Button("Close channel", role: .destructive) {
                     store.revoke()
                 }
             }
 
-            Text("Agent 用 keylease run --env <变量名> -- <命令> 调用")
+            Text("keylease run --env NAME -- <command>")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
 
-            Text("App 退出、到期或使用后，通道立即关闭。")
+            Text("Closes on use, expiry, or app exit.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
