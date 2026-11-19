@@ -5,50 +5,50 @@ description: Use when the user needs to give the agent a secret, API key, token,
 
 # Keylease
 
-Keylease 给 Agent 开一条**临时密钥通道**。通道是临时的，密钥本身不一定是临时的：用户可能只是不想让密钥进入聊天上下文，之后仍可能要求你把它保存到某个地方。
+Keylease gives the agent a **temporary secret channel**. The channel is temporary; the secret itself may not be. The user may simply not want it in the chat and may later ask you to save it somewhere.
 
-App 在 `/Applications/Keylease.app`，CLI 在 `/usr/local/bin/keylease`。
+The app lives at `/Applications/Keylease.app`; the CLI is `/usr/local/bin/keylease`.
 
-## 什么时候用
+## When to use
 
-- 用户需要给你 API key、token、密码、私钥，或任何不能直接发到聊天里的凭证。
-- 某条命令需要读取一个密钥，但你不应该把密钥值写进上下文、日志或命令参数。
-- 用户说“我给你一个 key”“用这个 token 跑一下”“不要让我把密钥发给你”。
+- The user needs to give you an API key, token, password, private key, or any credential that should not be pasted into chat.
+- A command needs a secret, but the value must not appear in your context, logs, or command arguments.
+- The user says things like “here’s a key”, “run this with my token”, or “don’t make me send the secret to you”.
 
-## 标准流程
+## Standard flow
 
-1. 先检查通道是否已经开着：
+1. First try the command directly:
 
 ```bash
 keylease run --env <ENV_NAME> -- <command>
 ```
 
-如果返回 `No active channel`，**不要停下来等用户回复**，直接改成等待模式再跑一次：
+If it returns `No active channel`, **do not stop and wait for the user to reply**. Rerun it in wait mode:
 
 ```bash
 keylease run --wait --env <ENV_NAME> -- <command>
 ```
 
-它会在后台阻塞，最长默认 10 分钟；用户把密钥复制到剪贴板并开启通道后，命令会立刻自动执行，用户不需要再发消息说“好了”。
+It blocks in the background for up to 10 minutes by default. As soon as the user copies the secret to the clipboard and opens the channel, the command runs automatically. The user does not need to send a “ready” message.
 
-2. 第一次需要用户开启通道时，用这段中文提醒，不要要求用户把密钥发给你：
+2. The first time the user needs to open a channel, use this reminder. Do not ask for the secret itself:
 
-> 请把密钥复制到剪贴板，然后点菜单栏的钥匙图标（或按 `⇧⌘K`），再点「从剪贴板开启通道」。不用把密钥发给我。
+> Copy the secret to your clipboard, then click the key icon in the menu bar (or press `⇧⌘K`) and choose “Open channel from clipboard”. You don’t need to send it to me.
 
-如果用户找不到图标：
+If the user cannot find the icon:
 
 ```bash
 open /Applications/Keylease.app
 keylease show
 ```
 
-3. 命令会自动在通道开启后执行。不要追问密钥内容，也不要要求用户确认密钥值，更不要再提醒“开好了告诉我”。
+3. The command will run automatically once the channel is open. Do not ask for the secret value, do not ask the user to confirm it, and do not say “tell me when it’s open”.
 
-如果当前工具对单次调用有超时限制，用 `--timeout 2m` 缩短单次等待，超时后再调用一次 `keylease run --wait ...` 继续等；不要改成反复询问用户。
+If your tool has a per-call timeout, use `--timeout 2m` and rerun `keylease run --wait ...` after it times out. Do not fall back to repeatedly asking the user.
 
-## 变量名由你指定
+## You choose the variable name
 
-`--env` 后面的变量名由 Agent 根据目标工具决定，不需要用户命名。常见例子：
+The name after `--env` is chosen by the agent based on the target tool; the user does not need to name it. Common examples:
 
 ```bash
 keylease run --env OPENAI_API_KEY -- python app.py
@@ -57,47 +57,47 @@ keylease run --env ANTHROPIC_API_KEY -- claude ...
 keylease run --env AWS_SECRET_ACCESS_KEY -- aws ...
 ```
 
-不传 `--env` 时默认注入 `KEYLEASE_SECRET`。
+Without `--env`, the default variable is `KEYLEASE_SECRET`.
 
-只想等通道开启、暂时不执行命令时：
+To wait for a channel without running a command:
 
 ```bash
 keylease wait --timeout 10m
 ```
 
-它成功返回 0 表示通道已开启；超时会返回非 0。
+It exits 0 when a channel is open and non-zero on timeout.
 
-如果工具需要多个变量，用 shell 做映射：
+If the tool needs multiple variables, map them inside one shell command:
 
 ```bash
 keylease run --env KEYLEASE_SECRET -- sh -c 'OPENAI_API_KEY=$KEYLEASE_SECRET exec python app.py'
 ```
 
-注意 Keylease 同一时间只保存一把密钥。需要多个不同的密钥时，请让用户分别开通道，或改用用户指定的密钥管理方式。
+Keylease holds only one secret at a time. For multiple different secrets, ask the user to open a separate channel for each, or use the user’s preferred secret manager.
 
-## 通道规则
+## Channel rules
 
-- 默认有效期 10 分钟。
-- 只能使用 1 次：每调用一次 `keylease run` 就消费掉通道。
-- 因为只有一次机会，**把需要密钥的多个步骤合并进同一条命令或同一个脚本**，不要先跑一次再跑第二次。
-- App 退出后通道也立即关闭。
-- 用户可以用菜单栏面板或 `keylease revoke` 立即关闭。
+- Default lifetime: 10 minutes.
+- Single use: each `keylease run` consumes the channel.
+- Because there is only one use, **batch all steps that need the secret into one command or script**. Do not run `keylease run` once and then again for a second step.
+- Exiting the app also closes the channel.
+- The user can close it from the menu bar panel or with `keylease revoke`.
 
-如果通道过期或已经被使用，再提醒用户复制密钥并重新开启。
+If the channel has expired or was already used, ask the user to copy the secret and reopen it.
 
-## 不要做
+## Don’t
 
-- 不要要求用户把密钥贴进聊天。
-- 不要用 `keylease set`，除非用户明确要求从 stdin/脚本设置；日常流程是菜单栏按钮。
-- 不要执行 `echo $OPENAI_API_KEY`、`printenv`、`env`、`cat` 之类的命令来“确认”密钥。
-- 不要把密钥写入日志、提交、issue、PR、聊天消息或无关的网络请求。
-- 不要把密钥值拼进命令行参数；让工具从环境变量读。
-- 不要因为输出里出现 `[REDACTED]` 就认为失败；这是正常的脱敏结果。
+- Don’t ask the user to paste the secret into chat.
+- Don’t use `keylease set` unless the user explicitly wants a stdin/script setup; the normal flow is the menu bar button.
+- Don’t run `echo $OPENAI_API_KEY`, `printenv`, `env`, `cat`, or similar commands to “verify” the secret.
+- Don’t write the secret to logs, commits, issues, PRs, chat messages, or unrelated network requests.
+- Don’t put the secret value in command-line arguments; let the tool read it from the environment.
+- Don’t treat `[REDACTED]` in the output as a failure; it is the expected redaction.
 
-## 保存密钥
+## Saving the secret
 
-用户如果明确要求“把这个密钥存到某处”，可以在通道有效期内用该密钥完成写入，例如写入用户指定的配置文件、密码管理器或 CI secret。通道关闭不等于密钥必须被丢弃；是否长期保存由用户决定。保存后不要在聊天里回显密钥。
+If the user explicitly asks you to “save this secret somewhere”, you may write it while the channel is valid, for example to a user-specified config file, password manager, or CI secret. A closed channel does not mean the secret must be discarded; whether to keep it is the user’s decision. Do not echo the secret in chat afterwards.
 
-## 边界
+## Boundary
 
-这不是防恶意 Agent 的硬边界：同一用户的进程仍可以调用 `keylease run` 并尝试把值编码出来。它防的是密钥误进聊天、日志、命令历史和模型上下文。需要更强隔离时，提醒用户使用每次确认、命令白名单或专用密钥管理服务。
+This is not a hard boundary against a malicious agent. A process running as the same user can still call `keylease run` and try to encode the value out. Keylease protects against secrets accidentally entering chat, logs, shell history, and model context. For stronger isolation, suggest per-use confirmation, a command allowlist, or a dedicated secret manager.
